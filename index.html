@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean Adaptive</title>
+    
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: #f8fafc; 
+            color: #0f172a;
+            padding: 20px;
+        }
+        
+        /* Основные стили */
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        /* Шапка */
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: #2563eb;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        .logo-text h1 { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
+        .logo-text span { font-size: 10px; color: #3b82f6; font-weight: 700; text-transform: uppercase; }
+        
+        /* Счетчики */
+        .stats {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .credits {
+            background: #fef3c7;
+            padding: 10px 16px;
+            border-radius: 16px;
+            border: 1px solid #fde68a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 900;
+            color: #b45309;
+        }
+        .steps { display: flex; gap: 6px; }
+        .step-dot {
+            width: 32px;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+        }
+        .step-dot.active { background: #2563eb; }
+        
+        /* Карточки */
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+        
+        /* Формы */
+        .form-group { margin-bottom: 24px; }
+        .form-label {
+            font-size: 11px;
+            font-weight: 900;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-left: 4px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .input {
+            width: 100%;
+            padding: 20px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.1);
+        }
+        textarea.input {
+            min-height: 144px;
+            resize: none;
+            font-family: inherit;
+        }
+        
+        /* Кнопки */
+        .btn {
+            width: 100%;
+            padding: 24px;
+            background: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .btn:hover { background: #1e293b; transform: translateY(-1px); box-shadow: 0 10px 40px -10px rgba(0,0,0,0.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: #2563eb; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-amber { background: #f59e0b; }
+        .btn-amber:hover { background: #d97706; }
+        
+        /* Сетка */
+        .grid { display: grid; gap: 24px; }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .header { flex-direction: column; gap: 16px; }
+        }
+        
+        /* Теги */
+        .tags { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+        .tag {
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tag-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .tag-green { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+        .tag-blue { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+        
+        /* Пути */
+        .path-card {
+            background: white;
+            padding: 28px;
+            border-radius: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s;
+        }
+        .path-card:hover { box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .path-header {
+            font-size: 10px;
+            font-weight: 900;
+            color: #3b82f6;
+            background: #eff6ff;
+            padding: 6px 12px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        .path-title { font-size: 16px; font-weight: 900; margin-bottom: 12px; line-height: 1.3; }
+        .path-desc {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 12px;
+            color: #64748b;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        
+        /* Варианты */
+        .options { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+        .option-btn {
+            text-align: left;
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option-btn:hover { border-color: #3b82f6; }
+        .option-btn.selected {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+            transform: translateX(4px);
+        }
+        
+        /* Результаты */
+        .result-box {
+            background: #0f172a;
+            color: white;
+            padding: 40px;
+            border-radius: 32px;
+            margin-bottom: 24px;
+        }
+        .result-label {
+            font-size: 10px;
+            font-weight: 900;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 16px;
+        }
+        .big-number {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+        
+        /* Финансы */
+        .finance-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 768px) { .finance-grid { grid-template-columns: 1fr; } }
+        
+        .finance-card {
+            background: white;
+            padding: 24px;
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        .finance-card.primary {
+            background: #059669;
+            color: white;
+            border: none;
+        }
+        .finance-label {
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+        .finance-value {
+            font-size: 24px;
+            font-weight: 900;
+        }
+        
+        /* Утилиты */
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-2 { gap: 8px; }
+        .gap-3 { gap: 12px; }
+        .gap-4 { gap: 16px; }
+        .mb-4 { margin-bottom: 16px; }
+        .mb-6 { margin-bottom: 24px; }
+        .mb-8 { margin-bottom: 32px; }
+        .mt-4 { margin-top: 16px; }
+        .mt-8 { margin-top: 32px; }
+        .text-center { text-align: center; }
+        .text-red { color: #dc2626; }
+        .bg-red-light { background: #fef2f2; border: 1px solid #fecaca; padding: 16px; border-radius: 16px; margin-bottom: 24px; }
+        .hidden { display: none; }
+        @media (min-width: 768px) { .md-flex { display: flex; } .md-hidden { display: none; } }
+        
+        /* Анимации */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin { animation: spin 1s linear infinite; display: inline-block; }
+        
+        /* Иконки (SVG) */
+        .icon { width: 20px; height: 20px; display: inline-block; vertical-align: middle; }
+        .icon-lg { width: 32px; height: 32px; }
+        .icon-xl { width: 48px; height: 48px; }
+        
+        /* Печать */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; }
+            .card, .path-card { box-shadow: none; border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Ключи Yandex Cloud
+        const API_KEY = "AQVN3fTQolc3LPHcCOtBPXsQAdImCKxighSIk-0o";
+        const FOLDER_ID = "b1g6n24td7vdh4om4scs";
+        const MODEL_NAME = "yandexgpt-lite";
+
+        // SVG иконки (встроенные, чтобы не зависеть от CDN)
+        const Icons = {
+            Waves: <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>,
+            BrainCircuit: <svg className="icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M19.967 17.484A4 4 0 0 1 18 18"/></svg>,
+            Target: <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
+            BookOpen: <svg className="icon icon-xl" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+            Coins: <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>,
+            AlertCircle: <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>,
+            CheckCircle2: <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>,
+            ChevronLeft: <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>,
+            ChevronRight: <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>,
+            RefreshCw: <svg className="icon animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>,
+            Sparkles: <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>,
+            Lightbulb: <svg className="icon icon-xl" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-1 1.5-2 1.5-3.5A6 6 0 0 0 6 8c0 1 .5 2 1.5 3.5.8.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>,
+            TrendingUp: <svg className="icon icon-xl" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>,
+            FileText: <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>,
+            Award: <svg className="icon icon-xl" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>,
+            Briefcase: <svg className="icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
+            Calculator: <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>,
+            Download: <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        };
+
+        const App = () => {
+            const [step, setStep] = useState(1);
+            const [credits, setCredits] = useState(8);
+            const [caseInput, setCaseInput] = useState('');
+            const [targetAudience, setTargetAudience] = useState('');
+            const [isAnalyzing, setIsAnalyzing] = useState(false);
+            const [initialAnalysis, setInitialAnalysis] = useState(null);
+            
+            const [dynamicPaths, setDynamicPaths] = useState([
+                { id: 1, title: "Путь 1: Альтернативные отрасли", desc: "Какие другие способы есть у клиента решить ту же задачу? Предложите гибрид (например, СТО + коворкинг).", focus: "Скрещивание с другими видами бизнеса." },
+                { id: 2, title: "Путь 2: Стратегические группы", desc: "Почему клиенты уходят к очень дорогим или очень дешевым конкурентам? Возьмите лучшее от обоих.", focus: "Сочетание цены лоукостера и сервиса премиум-класса." },
+                { id: 3, title: "Путь 3: Цепочка покупателей", desc: "Кто еще влияет на покупку? Переключитесь на того, кто реально платит или пользуется.", focus: "Ориентация не на водителя, а на его семью, закупщика или автопарк." },
+                { id: 4, title: "Путь 4: Дополнительные продукты", desc: "Что нужно клиенту до или после вашей услуги? Включите это в сервис.", focus: "Решение проблем, возникающих ДО и ПОСЛЕ основного ремонта." },
+                { id: 5, title: "Путь 5: Функциональная/Эмоциональная ориентация", desc: "Добавьте заботы и впечатлений, если все вокруг говорят только о цене и ТТХ.", focus: "Смена фокуса с 'железа' на чувства, комфорт и доверие." },
+                { id: 6, title: "Путь 6: Взгляд в будущее", desc: "Какой тренд станет нормой через 5 лет? Сделайте это основой продукта сегодня.", focus: "Адаптация под электрокары, автопилоты и шеринг-экономику." }
+            ]);
+            
+            const [selectedPaths, setSelectedPaths] = useState({});
+            const [customPaths, setCustomPaths] = useState({});
+            const [generatingForPath, setGeneratingForPath] = useState(null);
+            const [finalReport, setFinalReport] = useState(null);
+            const [investorPitch, setInvestorPitch] = useState(null);
+            const [error, setError] = useState(null);
+
+            const callYandexGPT = async (userText, systemText) => {
+                let delay = 1000;
+                for (let i = 0; i < 5; i++) {
+                    try {
+                        const response = await fetch('https://llm.api.cloud.yandex.net/foundationModels/v1/completion', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Api-Key ${API_KEY}`,
+                                'x-folder-id': FOLDER_ID
+                            },
+                            body: JSON.stringify({
+                                modelUri: `gpt://${FOLDER_ID}/${MODEL_NAME}`,
+                                completionOptions: {
+                                    stream: false,
+                                    temperature: 0.3,
+                                    maxTokens: 4000,
+                                    reasoningOptions: { mode: "DISABLED" }
+                                },
+                                messages: [
+                                    { role: "system", text: systemText },
+                                    { role: "user", text: userText }
+                                ]
+                            })
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || `HTTP ${response.status}`);
+                        }
+
+                        const result = await response.json();
+                        const text = result.alternatives?.[0]?.message?.text;
+                        
+                        if (!text) throw new Error('Empty response');
+                        
+                        const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || 
+                                         text.match(/```\n?([\s\S]*?)\n?```/) ||
+                                         [null, text];
+                        const cleanJson = jsonMatch[1] || text;
+                        
+                        try {
+                            return JSON.parse(cleanJson);
+                        } catch (e) {
+                            return { text: cleanJson };
+                        }
+                        
+                    } catch (err) {
+                        console.error(`Attempt ${i+1} failed:`, err);
+                        if (i === 4) throw err;
+                        await new Promise(r => setTimeout(r, delay));
+                        delay *= 2;
+                    }
+                }
+            };
+
+            const handleInitialSubmit = async () => {
+                if (!caseInput || !targetAudience) return;
+                setIsAnalyzing(true);
+                setError(null);
+                
+                try {
+                    const systemPrompt = `Ты эксперт по стратегии Голубого океана. Проанализируй кейс и ЦА. 
+                    Выдай JSON строго без markdown: {
+                        "position": "текущий статус (2-3 предложения)",
+                        "pains": ["боль 1", "боль 2", "боль 3"],
+                        "needs": ["нужда 1", "нужда 2", "нужда 3"],
+                        "market_context": "описание рынка"
+                    }`;
+                    
+                    const analysisData = await callYandexGPT(
+                        `Кейс: ${caseInput}. ЦА: ${targetAudience}.`, 
+                        systemPrompt
+                    );
+                    
+                    if (!analysisData.position) throw new Error('Invalid response format');
+                    setInitialAnalysis(analysisData);
+                    setStep(2);
+                } catch (err) {
+                    setError("Ошибка анализа: " + err.message);
+                } finally {
+                    setIsAnalyzing(false);
+                }
+            };
+
+            const generateOptionsForPath = async (pathId) => {
+                if (credits <= 0) return;
+                setGeneratingForPath(pathId);
+                setError(null);
+                
+                try {
+                    const pathObj = dynamicPaths.find(p => p.id === pathId);
+                    const userPrompt = `Кейс: ${caseInput}. ЦА: ${targetAudience}. 
+                    ПУТЬ: ${pathObj.title}. 
+                    ФОКУС: ${pathObj.focus}.
+                    Боли: ${initialAnalysis.pains.join(', ')}`;
+
+                    const systemPrompt = `Ты стратег Голубого океана. Предложи 3 УНИКАЛЬНЫХ решения строго в рамках заданного ПУТИ.
+                    Правила:
+                    1. НЕ повторяй советы между разными путями
+                    2. Фокус на конкретном пути (экономика/эмоции/тренды)
+                    3. Готовое решение-оффер (7-12 слов)
+                    
+                    Примеры:
+                    - Альтернативы: "СТО внутри ТРЦ: сдаете ключи перед кино, забираете готовую машину после"
+                    - Доп. продукты: "Страховой аудит ходовой: официальный акт для продажи авто"
+                    - Эмоции: "Женский день в СТО: мастер-классы по устройству авто и лаунж-зона"
+                    
+                    Выдай JSON: [{"id": "a", "text": "решение"}, {"id": "b", "text": "решение"}, {"id": "c", "text": "решение"}]`;
+                    
+                    const newOptions = await callYandexGPT(userPrompt, systemPrompt);
+                    
+                    if (!Array.isArray(newOptions)) throw new Error('Invalid options format');
+                    
+                    setDynamicPaths(prev => prev.map(p => 
+                        p.id === pathId ? { ...p, options: newOptions } : p
+                    ));
+                    setCredits(prev => prev - 1);
+                } catch (err) {
+                    setError("Ошибка генерации: " + err.message);
+                } finally {
+                    setGeneratingForPath(null);
+                }
+            };
+
+            const calculateResults = async () => {
+                setIsAnalyzing(true);
+                setError(null);
+                
+                try {
+                    const selections = dynamicPaths.map(p => ({
+                        path: p.title,
+                        choice: selectedPaths[p.id] ? p.options?.find(o => o.id === selectedPaths[p.id])?.text : (customPaths[p.id] || "Не заполнено")
+                    }));
+
+                    const systemPrompt = `Оцени стратегию Голубого океана. 
+                    Для 'forecast2035' используй перспективные технологии (цифровые двойники, предиктивная аналитика, AR).
+                    Назови профессию будущего из Атласа профессий.
+                    
+                    Выдай JSON: {
+                        "efficiency": число от 0 до 100,
+                        "status": "статус компании",
+                        "forecast2035": "описание будущего с технологиями",
+                        "grants": ["грант/субсидия 1", "грант 2"],
+                        "recommendation": "краткий совет стратега"
+                    }`;
+
+                    const data = await callYandexGPT(
+                        `Кейс: ${caseInput}. Выбор пользователя: ${JSON.stringify(selections)}`, 
+                        systemPrompt
+                    );
+                    
+                    setFinalReport(data);
+                    setStep(3);
+                } catch (err) {
+                    setError("Ошибка расчета: " + err.message);
+                } finally {
+                    setIsAnalyzing(false);
+                }
+            };
+
+            const generatePitch = async () => {
+                setIsAnalyzing(true);
+                setError(null);
+                
+                try {
+                    const selections = dynamicPaths.map(p => ({
+                        path: p.title,
+                        choice: selectedPaths[p.id] ? p.options?.find(o => o.id === selectedPaths[p.id])?.text : (customPaths[p.id] || "Не заполнено")
+                    }));
+
+                    const systemPrompt = `Ты финансовый аналитик. Составь инвесторский питч для стратегии Голубого океана.
+                    Фокус на MVP (минимальные инвестиции).
+                    
+                    Выдай JSON: {
+                        "initial_state": "описание текущего состояния",
+                        "transformation": "трансформация по Голубому океану",
+                        "immediate_steps": "план на 1-3 месяца",
+                        "first_year_goal": "цель первого года",
+                        "cost_gross": число (руб),
+                        "grants_deduction": число (руб),
+                        "cost_net": число (руб),
+                        "financial_summary": "обоснование бюджета"
+                    }`;
+
+                    const data = await callYandexGPT(
+                        `Кейс: ${caseInput}. ЦА: ${targetAudience}. Выбор: ${JSON.stringify(selections)}. Гранты: ${finalReport?.grants?.join(', ') || 'нет'}`, 
+                        systemPrompt
+                    );
+                    
+                    setInvestorPitch(data);
+                    setStep(4);
+                } catch (err) {
+                    setError("Ошибка создания питча: " + err.message);
+                } finally {
+                    setIsAnalyzing(false);
+                }
+            };
+
+            const getBusinessScore = () => {
+                if (credits >= 6) return "Отлично";
+                if (credits >= 4) return "Хорошо";
+                return "Удовлетворительно";
+            };
+
+            const handleDownloadPDF = () => window.print();
+
+            const reset = () => {
+                setStep(1);
+                setCredits(8);
+                setSelectedPaths({});
+                setCustomPaths({});
+                setFinalReport(null);
+                setInvestorPitch(null);
+                setCaseInput('');
+                setTargetAudience('');
+                setInitialAnalysis(null);
+            };
+
+            return (
+                <div className="container">
+                    <header className="header">
+                        <div className="logo">
+                            <div className="logo-icon">{Icons.Waves}</div>
+                            <div className="logo-text">
+                                <h1>Ocean Adaptive</h1>
+                                <span>Yandex Cloud Edition</span>
+                            </div>
+                        </div>
+
+                        <div className="stats">
+                            <div className="credits">
+                                {Icons.Coins}
+                                <span style={{marginLeft: '4px'}}>{credits}</span>
+                                <span style={{fontSize: '10px', marginLeft: '4px', opacity: 0.8}}>Кредитов</span>
+                            </div>
+                            <div className="steps">
+                                {[1, 2, 3, 4].map(i => (
+                                    <div key={i} className={`step-dot ${step >= i ? 'active' : ''}`} />
+                                ))}
+                            </div>
+                        </div>
+                    </header>
+
+                    <main>
+                        {error && (
+                            <div className="bg-red-light text-red flex items-center gap-2 mb-6">
+                                {Icons.AlertCircle}
+                                <span style={{fontWeight: 500}}>{error}</span>
+                            </div>
+                        )}
+
+                        {step === 1 && (
+                            <div className="grid-2" style={{alignItems: 'center'}}>
+                                <div className="card">
+                                    <h2 className="mb-8 flex items-center gap-3" style={{fontSize: '24px', fontWeight: 900}}>
+                                        <span style={{color: '#3b82f6'}}>{Icons.BrainCircuit}</span>
+                                        1. Вводные данные
+                                    </h2>
+                                    <div style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
+                                        <div>
+                                            <label className="form-label">Что мы продаем/ремонтируем?</label>
+                                            <textarea 
+                                                className="input"
+                                                placeholder="Например: Сервис по ремонту легковых авто в Южно-Сахалинске..."
+                                                value={caseInput}
+                                                onChange={(e) => setCaseInput(e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="form-label">Кто наш клиент?</label>
+                                            <input 
+                                                type="text"
+                                                className="input"
+                                                placeholder="Владельцы иномарок старше 5 лет, ценящие время..."
+                                                value={targetAudience}
+                                                onChange={(e) => setTargetAudience(e.target.value)}
+                                            />
+                                        </div>
+                                        <button 
+                                            onClick={handleInitialSubmit}
+                                            disabled={!caseInput || !targetAudience || isAnalyzing}
+                                            className="btn"
+                                        >
+                                            {isAnalyzing ? Icons.RefreshCw : <>{Icons.Target} Начать анализ</>}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="md-flex flex-col items-center justify-center gap-6 hidden">
+                                    <div style={{
+                                        width: '96px', 
+                                        height: '96px', 
+                                        background: '#dbeafe', 
+                                        borderRadius: '30px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transform: 'rotate(3deg)'
+                                    }}>
+                                        <span style={{color: '#2563eb'}}>{Icons.BookOpen}</span>
+                                    </div>
+                                    <div style={{textAlign: 'center', maxWidth: '320px'}}>
+                                        <h3 style={{fontSize: '20px', fontWeight: 900, marginBottom: '12px'}}>Ваш путь к Голубому Океану</h3>
+                                        <p style={{fontSize: '14px', color: '#64748b'}}>
+                                            Анализ через Yandex GPT. У вас <b>8 попыток</b> получить подсказки от ИИ.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 2 && initialAnalysis && (
+                            <div style={{display: 'flex', flexDirection: 'column', gap: '32px'}}>
+                                <div className="no-print flex items-center justify-between">
+                                    <button onClick={() => setStep(1)} className="flex items-center gap-2 text" style={{fontWeight: 700, color: '#64748b', cursor: 'pointer', background: 'none', border: 'none'}}>
+                                        {Icons.ChevronLeft} К настройкам
+                                    </button>
+                                </div>
+
+                                <div className="card flex items-center gap-8" style={{flexWrap: 'wrap'}}>
+                                    <div style={{flex: 1}}>
+                                        <div style={{fontSize: '10px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px'}}>Текущая ситуация</div>
+                                        <div style={{fontSize: '20px', fontWeight: 900, lineHeight: 1.3}}>{initialAnalysis.position}</div>
+                                    </div>
+                                    <div className="tags">
+                                        {initialAnalysis.pains?.map((p, i) => (
+                                            <span key={i} className="tag tag-red flex items-center gap-2">
+                                                {Icons.AlertCircle} {p}
+                                            </span>
+                                        ))}
+                                        {initialAnalysis.needs?.map((n, i) => (
+                                            <span key={i} className="tag tag-green flex items-center gap-2">
+                                                {Icons.CheckCircle2} {n}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-3">
+                                    {dynamicPaths.map(path => (
+                                        <div key={path.id} className="path-card">
+                                            <div>
+                                                <span className="path-header">Путь {path.id}</span>
+                                                <h3 className="path-title">{path.title}</h3>
+                                                <div className="path-desc">{path.desc}</div>
+                                            </div>
+                                            
+                                            <div style={{display: 'flex', flexDirection: 'column', gap: '16px', flexGrow: 1}}>
+                                                <div>
+                                                    <label style={{fontSize: '10px', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '8px', letterSpacing: '0.1em'}}>Ваша идея</label>
+                                                    <textarea 
+                                                        className="input"
+                                                        style={{minHeight: '96px', fontSize: '12px'}}
+                                                        placeholder="Напишите свое решение..."
+                                                        value={customPaths[path.id] || ''}
+                                                        onChange={(e) => setCustomPaths({...customPaths, [path.id]: e.target.value})}
+                                                    />
+                                                </div>
+
+                                                {path.options?.length > 0 && (
+                                                    <div className="options">
+                                                        <label style={{fontSize: '10px', fontWeight: 900, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.1em'}}>Варианты:</label>
+                                                        {path.options.map(opt => (
+                                                            <button 
+                                                                key={opt.id}
+                                                                onClick={() => setSelectedPaths({...selectedPaths, [path.id]: opt.id})}
+                                                                className={`option-btn ${selectedPaths[path.id] === opt.id ? 'selected' : ''}`}
+                                                            >
+                                                                {opt.text}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {(!path.options || path.options.length === 0) && (
+                                                    <button 
+                                                        onClick={() => generateOptionsForPath(path.id)}
+                                                        disabled={credits <= 0 || generatingForPath === path.id}
+                                                        className="btn btn-amber no-print"
+                                                        style={{marginTop: 'auto'}}
+                                                    >
+                                                        {generatingForPath === path.id ? (
+                                                            <>{Icons.RefreshCw} Генерация...</>
+                                                        ) : (
+                                                            <>{Icons.Sparkles} Получить решения (1 🪙)</>
+                                                        )}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <button 
+                                    onClick={calculateResults}
+                                    disabled={isAnalyzing}
+                                    className="btn btn-primary no-print"
+                                    style={{fontSize: '18px'}}
+                                >
+                                    {isAnalyzing ? Icons.RefreshCw : <>Завершить обучение {Icons.ChevronRight}</>}
+                                </button>
+                            </div>
+                        )}
+
+                        {step === 3 && finalReport && (
+                            <div style={{display: 'flex', flexDirection: 'column', gap: '32px'}}>
+                                <div className="no-print flex items-center justify-between">
+                                    <button onClick={() => setStep(2)} className="flex items-center gap-2" style={{fontWeight: 700, color: '#64748b', cursor: 'pointer', background: 'none', border: 'none'}}>
+                                        {Icons.ChevronLeft} К доработке
+                                    </button>
+                                </div>
+
+                                <div className="card" style={{padding: '40px'}}>
+                                    <div style={{display: 'flex', flexDirection: 'column', gap: '48px'}}>
+                                        <div>
+                                            <h2 style={{fontSize: '36px', fontWeight: 900, marginBottom: '32px', letterSpacing: '-0.02em'}}>Ваш 2035 Год</h2>
+                                            
+                                            <div className="flex gap-4 mb-8" style={{flexWrap: 'wrap'}}>
+                                                <div className="result-box" style={{background: '#2563eb', flex: 1, minWidth: '200px'}}>
+                                                    <div className="result-label">Рыночный статус</div>
+                                                    <div style={{fontSize: '20px', fontWeight: 900}}>{finalReport.status}</div>
+                                                </div>
+                                                <div className="result-box" style={{flex: 1, minWidth: '200px'}}>
+                                                    <div className="result-label">Эффективность</div>
+                                                    <div className="big-number">{Math.round(finalReport.efficiency)}%</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="card" style={{background: '#f8fafc', borderLeft: '6px solid #2563eb'}}>
+                                                <div style={{color: '#f59e0b', marginBottom: '16px'}}>{Icons.Lightbulb}</div>
+                                                <h4 style={{fontWeight: 900, marginBottom: '12px', fontSize: '18px'}}>Совет стратега:</h4>
+                                                <p style={{color: '#64748b', fontStyle: 'italic', lineHeight: 1.6}}>"{finalReport.recommendation}"</p>
+                                            </div>
+                                        </div>
+
+                                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px'}}>
+                                            <div className="result-box">
+                                                <div className="result-label">Будущее & Технологии</div>
+                                                <p style={{lineHeight: 1.6, opacity: 0.9}}>{finalReport.forecast2035}</p>
+                                            </div>
+                                            
+                                            <div style={{background: '#059669', color: 'white', padding: '32px', borderRadius: '32px'}}>
+                                                <div style={{fontSize: '10px', fontWeight: 900, opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '24px'}}>Гос. поддержка</div>
+                                                <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
+                                                    {finalReport.grants?.map((g, i) => (
+                                                        <div key={i} style={{
+                                                            background: 'rgba(255,255,255,0.1)', 
+                                                            padding: '16px', 
+                                                            borderRadius: '16px',
+                                                            fontWeight: 700,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '12px'
+                                                        }}>
+                                                            {Icons.CheckCircle2} {g}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-8 text-center no-print">
+                                        <button 
+                                            onClick={generatePitch}
+                                            disabled={isAnalyzing}
+                                            className="btn"
+                                            style={{maxWidth: '500px', margin: '0 auto'}}
+                                        >
+                                            {isAnalyzing ? Icons.RefreshCw : <>{Icons.FileText} Сформировать запрос инвесторам</>}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 4 && investorPitch && (
+                            <div style={{display: 'flex', flexDirection: 'column', gap: '32px'}}>
+                                <div className="no-print flex items-center justify-between">
+                                    <button onClick={() => setStep(3)} className="flex items-center gap-2" style={{fontWeight: 700, color: '#64748b', cursor: 'pointer', background: 'none', border: 'none'}}>
+                                        {Icons.ChevronLeft} Назад
+                                    </button>
+                                </div>
+
+                                <div className="card">
+                                    <div style={{
+                                        background: '#fef9c3', 
+                                        border: '4px solid #facc15', 
+                                        padding: '32px', 
+                                        borderRadius: '30px', 
+                                        marginBottom: '40px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '24px',
+                                        flexWrap: 'wrap'
+                                    }}>
+                                        <div className="no-print" style={{
+                                            background: '#facc15', 
+                                            padding: '16px', 
+                                            borderRadius: '50%',
+                                            width: '64px',
+                                            height: '64px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>
+                                            {Icons.Award}
+                                        </div>
+                                        <div>
+                                            <div style={{fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', opacity: 0.6, marginBottom: '4px'}}>Оценка бизнеса</div>
+                                            <div style={{fontSize: '30px', fontWeight: 900}}>{getBusinessScore()}</div>
+                                            <div style={{fontSize: '12px', fontWeight: 700, opacity: 0.6, marginTop: '8px'}}>Сохранено кредитов: {credits}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-8">
+                                        <h2 className="flex items-center gap-3 mb-6" style={{fontSize: '30px', fontWeight: 900}}>
+                                            <span style={{color: '#2563eb'}}>{Icons.Briefcase}</span>
+                                            Запрос для инвесторов
+                                        </h2>
+                                        
+                                        <div className="grid-2">
+                                            <div className="card" style={{background: '#f8fafc'}}>
+                                                <div style={{fontSize: '10px', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px'}}>Исходная форма</div>
+                                                <p style={{lineHeight: 1.6}}>{investorPitch.initial_state}</p>
+                                            </div>
+                                            <div className="card" style={{background: '#eff6ff', borderColor: '#bfdbfe'}}>
+                                                <div style={{fontSize: '10px', fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px'}}>Трансформация</div>
+                                                <p style={{fontWeight: 700, lineHeight: 1.6}}>{investorPitch.transformation}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '40px'}}>
+                                        <div className="result-box">
+                                            <div className="result-label">Ближайшие шаги (MVP)</div>
+                                            <p style={{lineHeight: 1.6, opacity: 0.9}}>{investorPitch.immediate_steps}</p>
+                                        </div>
+                                        <div className="result-box" style={{background: 'linear-gradient(135deg, #2563eb, #4f46e5)'}}>
+                                            <div className="result-label" style={{color: '#c7d2fe'}}>Фокус на первый год</div>
+                                            <p style={{lineHeight: 1.6, opacity: 0.9}}>{investorPitch.first_year_goal}</p>
+                                        </div>
+                                    </div>
+
+                                    <div style={{background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '32px', borderRadius: '32px'}}>
+                                        <h3 className="flex items-center gap-3 mb-8" style={{fontSize: '20px', fontWeight: 900, color: '#065f46'}}>
+                                            <span style={{color: '#059669'}}>{Icons.Calculator}</span>
+                                            Финансовая модель
+                                        </h3>
+                                        
+                                        <div className="finance-grid">
+                                            <div className="finance-card">
+                                                <div className="finance-label">Стоимость внедрения</div>
+                                                <div className="finance-value" style={{color: '#0f172a'}}>
+                                                    {new Intl.NumberFormat('ru-RU').format(investorPitch.cost_gross)} ₽
+                                                </div>
+                                            </div>
+                                            <div className="finance-card">
+                                                <div className="finance-label" style={{color: '#059669'}}>Потенциальные гранты</div>
+                                                <div className="finance-value" style={{color: '#059669'}}>
+                                                    - {new Intl.NumberFormat('ru-RU').format(investorPitch.grants_deduction)} ₽
+                                                </div>
+                                            </div>
+                                            <div className="finance-card primary">
+                                                <div className="finance-label">Итого к привлечению</div>
+                                                <div className="finance-value">
+                                                    {new Intl.NumberFormat('ru-RU').format(investorPitch.cost_net)} ₽
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style={{background: '#d1fae5', padding: '24px', borderRadius: '16px', fontStyle: 'italic', color: '#065f46', fontWeight: 500}}>
+                                            {investorPitch.financial_summary}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-8 text-center no-print" style={{display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap'}}>
+                                        <button 
+                                            onClick={handleDownloadPDF}
+                                            className="btn btn-primary"
+                                        >
+                                            {Icons.Download} Скачать как PDF
+                                        </button>
+                                        <button 
+                                            onClick={reset}
+                                            className="btn"
+                                            style={{background: '#f1f5f9', color: '#64748b'}}
+                                        >
+                                            {Icons.RefreshCw} Начать заново
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
